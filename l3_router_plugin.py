@@ -1,3 +1,7 @@
+# Copyright (c) 2015 OpenStack Foundation.
+#
+# All Rights Reserved.
+#
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
 #    a copy of the License at
@@ -30,8 +34,8 @@ from neutron.services import service_base
 
 from dragonflow.common import exceptions as df_exceptions
 from dragonflow.db import api_nb
-from dargonflow.db.neutron import lockedobjects_db as lock_db
-from dargonflow.db.neutron import versionobjects_db as version_db
+from dragonflow.db.neutron import lockedobjects_db as lock_db
+from dragonflow.db.neutron import versionobjects_db as version_db
 from dragonflow.neutron.common import constants as df_const
 
 
@@ -86,10 +90,11 @@ class DFL3RouterPlugin(service_base.ServicePluginBase,
                 context.session, router['id']
             )
 
+        router_id = router['id']
         tenant_id = router['tenant_id']
         is_distributed = router.get('distributed', False)
         router_name = router.get('name', df_const.DF_RESOURCE_DEFAULT_NAME)
-        self.nb_api.create_lrouter(router_name, topic=tenant_id,
+        self.nb_api.create_lrouter(router_id, topic=tenant_id,
                                    name=router_name,
                                    distributed=is_distributed,
                                    version=router_version,
@@ -123,6 +128,8 @@ class DFL3RouterPlugin(service_base.ServicePluginBase,
         except df_exceptions.DBKeyNotFound:
             LOG.debug("router %s is not found in DF DB, might have "
                       "been deleted concurrently" % router_id)
+
+        return router
 
     @lock_db.wrap_db_lock(lock_db.RESOURCE_DF_PLUGIN)
     def delete_router(self, context, router_id):
